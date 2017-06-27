@@ -5,7 +5,7 @@ int g_start;
 int g_lem; // № Ants
 int g_err; // error ? 1 : 0;
 int g_e; // 3 etaps of valid: 1 - N(ants); 2 - Vertexes; 3 - Edges
-
+t_fdlist g_;
 char *g_s;
 
 static	int i_check(t_r **b_room, char *name)
@@ -20,7 +20,7 @@ static	int i_check(t_r **b_room, char *name)
 
  int i_write(char chk, int cnt, t_info **t)
 {
-	static t_r		*rooms;
+	static t_list;
 
 
 	/*
