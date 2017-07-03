@@ -10,16 +10,18 @@
 typedef struct		s_room
 {
 	char				*name;
+	int 				stend;
 	int 				x_cord;
 	int					y_cord;
 	struct s_room	*next;
+	struct s_room	*dali;
 }						t_r;
 
 //head of room lists
-typedef struct 		s_lhead
+typedef struct 		s_listarr
 {
 	t_r					*room;
-}						t_head;
+}						t_l;
 
 //main struct
 typedef struct	s_info
@@ -28,7 +30,7 @@ typedef struct	s_info
 	int				end;
 	int				ant;
 	int 			v;
-	t_head		*arr;
+	t_l				*arr;
 }					t_info;
 
 # endif
