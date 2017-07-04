@@ -1,6 +1,7 @@
 #include "lem_in.h"
-#define DEF(x, y, z, q) *x = -1; *y = -1; *z = 0; *q = 2;
+#define DEF(x, y, z, q) *x = 0; *y = 0; *z = 0; *q = 2;
 
+int g_j;
 int g_end;
 int g_start;
 int g_count;
@@ -64,14 +65,14 @@ static int              read_fd(t_fdlist *file)
 
 
 
-int i_write(int i, int j, int chk, int stend)
+int i_write(int i, int chk, int stend)
 {
 	t_r *temp;
 
-	if (chk == 1 && !ft_strcmp("##start", g_s) && g_start--)
-		return (i_write(0, 1, ++chk, 1));
-	else if (chk == 1 && !ft_strcmp("##end", g_s) && g_end--)
-		return (i_write(0, 1, ++chk, 2));
+	if (chk == 1 && !ft_strcmp("##start", g_s) && ++g_start)
+		return (i_write(0, ++chk, 1));
+	else if (chk == 1 && !ft_strcmp("##end", g_s) && ++g_end)
+		return (i_write(0, ++chk, 2));
 	else if (chk == 1)
 		return (get_next_line(0, &g_s));
 	get_next_line(0, &g_s);
@@ -80,17 +81,16 @@ int i_write(int i, int j, int chk, int stend)
 		g_err = (g_s[i++ + 1] == ' ') ? 1: 0;
 	temp->name = (char *)malloc(sizeof(char) * i + 1);                        //MALLOC
 	ft_strncpy(temp->name, g_s, (size_t)i);
-	while(g_count-- && g_err)
+	while((g_j = 1) && g_count-- && g_err)
 	{
 		while (ft_isdigit(g_s[i++]) && g_err)
-			j++;
-		g_s[i] != ' ' ? g_err = 0 : 0;
-		g_count ? temp->x_cord = ft_atoi(g_s - j) : 0;
-		!g_count ? temp->y_cord = ft_atoi(g_s - j) : 0;
-		j = 0;
+			g_j++;
+		if ((g_count && g_s[i] != ' ') || (!g_count && g_s[i] != '\0'))
+		g_err = 0;
+		g_count ? temp->x_cord = ft_atoi(g_s - g_j - 1) : 0;
+		!g_count ? temp->y_cord = ft_atoi(g_s - g_j - 1) : 0;
 	}
-	temp->stend = stend;
-	temp->next = NULL;
+	temp->next = (temp->stend = stend) ? NULL : NULL;
 }
 
 int main()
@@ -107,7 +107,7 @@ int main()
 		t->ant = ft_atoi(g_s) ? ft_strclr(g_s) : g_err--;
 	while (get_next_line(0, &g_s) && g_err)
 		if (g_e == 2 && g_s[0] == '#' && g_s[1] == '#')
-			i_write(0, 1, 1, ++g_lem);
+			i_write(0, 1, ++g_lem);
 		else if ((*g_s != '#' || g_err) && write(2, "error\n", 6))
 			return (0);
 }
