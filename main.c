@@ -1,113 +1,84 @@
+#include <fcntl.h>
 #include "lem_in.h"
 #define DEF(x, y, z, q) *x = 0; *y = 0; *z = 0; *q = 2;
 
+int g_fd; //FILE DESCRIPTOR
 int g_j;
 int g_end;
 int g_start;
-int g_count;
 int g_lem; // № Ants
 int g_err; // error ? 1 : 0;
 int g_e; // 3 etaps of valid: 1 - N(ants); 2 - Vertexes; 3 - Edges
 t_r *g_head;
 char *g_s;
 
-static	int i_check(t_r **b_room, char *name)
+
+int l_cmp(t_r *src)
 {
-	t_r *t_room;
+	t_r *temp;
 
-	t_room = *b_room;
-	while (t_room)
-		if(ft_strcmp(t_room->name, name) == 0)
-			return(0);
+	temp = src;
+	if (temp->dali != NULL)
+	while (1)
+		if (!ft_strcmp(g_head->name, temp->name) || \
+         	   (g_head->x_cord == temp->x_cord && \
+          	      g_head->y_cord == temp->y_cord))
+			return ((g_err = 0));
+		else if (temp->dali == NULL)
+			break;
+		else
+			temp = temp->dali;
+	g_head = src;
+	return(1);
 }
 
-
-
-
-	/*
-	if ((chk == 'e' && cnt == 1) ? get_next_line(0, &g_s) : 0)
-		get_data(&(*t)->room, g_s) ? 1 : g_err = 1;
-	else if  ((chk == 's' && cnt == 1) ? get_next_line(0, &g_s) : 0)
-		get_data(&(*t)->room, g_s) ? 1 : g_err = 1;
-	 */
-	if ((chk == 'e' || chk == 's') ? get_next_line(0, &g_s) : 1)
-	{
-		chk == 'e' ?
-	}
-		ft_strclr(g_s);
-
-}
-
-static int              read_fd(t_fdlist *file)
-{
-	char    *buf;
-	t_list  *onread;
-	t_list  *crawler;
-
-	if (!(buf = (char *)malloc(BUFF_SIZE + 1)) || \
-        !(onread = (t_list *)malloc(sizeof(t_list))))
-		return (-1);
-	onread->content = buf;
-	onread->content_size = BUFF_SIZE;
-	onread->next = NULL;
-	crawler = file->list;
-	if (crawler != NULL)
-	{
-		while (crawler->next != NULL)
-			crawler = crawler->next;
-		crawler->next = onread;
-	}
-	else
-		file->list = onread;
-	return (read(file->fdnum, (char *)(onread->content), BUFF_SIZE));
-}
-
-
-
-
-int i_write(int i, int chk, int stend)
+t_r *i_write(int i, int chk, int j, int stend)
 {
 	t_r *temp;
 
 	if (chk == 1 && !ft_strcmp("##start", g_s) && ++g_start)
-		return (i_write(0, ++chk, 1));
+		return (i_write(0, ++chk, 2, 1));
 	else if (chk == 1 && !ft_strcmp("##end", g_s) && ++g_end)
-		return (i_write(0, ++chk, 2));
-	else if (chk == 1)
-		return (get_next_line(0, &g_s));
-	get_next_line(0, &g_s);
+		return (i_write(0, ++chk, 2, 2));
+	else if (chk == 1 && get_next_line(g_fd, &g_s))                            //GNL
+		return (0);
+	stend ? get_next_line(g_fd, &g_s) : 0;
 	temp = (t_r *)malloc(sizeof(t_r));												//MALLOC
-	while(ft_isdigit(g_s[i]) && ft_isalpha(g_s[i]))
-		g_err = (g_s[i++ + 1] == ' ') ? 1: 0;
+	while(ft_isdigit(g_s[i]) || ft_isalpha(g_s[i]))
+		g_err = (g_s[++i] == ' ') ? 1: 0;
 	temp->name = (char *)malloc(sizeof(char) * i + 1);                        //MALLOC
 	ft_strncpy(temp->name, g_s, (size_t)i);
-	while((g_j = 1) && g_count-- && g_err)
+	while((g_j = 1) && j-- && g_err)
 	{
-		while (ft_isdigit(g_s[i++]) && g_err)
+		while (ft_isdigit(g_s[++i]) && g_err)
 			g_j++;
-		if ((g_count && g_s[i] != ' ') || (!g_count && g_s[i] != '\0'))
-		g_err = 0;
-		g_count ? temp->x_cord = ft_atoi(g_s - g_j - 1) : 0;
-		!g_count ? temp->y_cord = ft_atoi(g_s - g_j - 1) : 0;
+		if ((j && g_s[i] != ' ') || (!j && g_s[i] != '\0'))
+			g_err = 0;
+		j ? temp->x_cord = ft_atoi(g_s + i - 1) : 0;
+		!j ? temp->y_cord = ft_atoi(g_s + i - 1) : 0;
 	}
-	temp->next = (temp->stend = stend) ? NULL : NULL;
+	temp->dali = (temp->stend = stend) ? g_head : g_head;
+	temp->next = NULL;
+	return(temp);
 }
 
 int main()
 {
 	t_info		*t;
-	t_r			*r;
 
-	(r = (t_r *)malloc(sizeof(t_r))) ? g_head = r : 0;							//MALLOC
+	g_fd = open("../test", O_RDONLY);
 	t = (t_info *)malloc(sizeof(t_info));												//MALLOC
-	if (read(0, g_s, 0) < 1)														//TEST reading
+	if (read(g_fd, g_s, 0) < 0)														//TEST reading
 		return ((int)write(2, "error\n", 6));
-	DEF(&g_start, &g_end, &t->v, &g_count);
-	if ((g_err = get_next_line(0, &g_s) ? ft_isaldigit(g_s) : 0))
-		t->ant = ft_atoi(g_s) ? ft_strclr(g_s) : g_err--;
-	while (get_next_line(0, &g_s) && g_err)
+	DEF(&g_start, &g_end, &t->v, &g_e);
+	if ((g_err = get_next_line(g_fd, &g_s) ? ft_isaldigit(g_s) : 0))				//GNL
+		(t->ant = ft_atoi(g_s)) ? ft_strclr(g_s) : g_err--;
+	while (get_next_line(g_fd, &g_s) && g_err)										//GNL
 		if (g_e == 2 && g_s[0] == '#' && g_s[1] == '#')
-			i_write(0, 1, ++g_lem);
+			l_cmp(i_write(0, 1, 2, 0));
+		else if (g_e == 2 && g_s[0] != '#')
+			l_cmp(i_write(0, 1, 2, 0));
 		else if ((*g_s != '#' || g_err) && write(2, "error\n", 6))
 			return (0);
+	g_err ? 0 :  write(2, "error\n", 6);
 }
