@@ -1,7 +1,7 @@
 #include <fcntl.h>
 #include "lem_in.h"
 #define DEF(x, y, z, q) *x = 0; *y = 0; *z = 0; *q = 2;
-
+#define IS_COM(a) (a[0] == '#' && a[1] != '#') ? 1 : 0;
 int g_fd; //FILE DESCRIPTOR
 int g_j;
 int g_end;
@@ -31,6 +31,7 @@ int l_cmp(t_r *src)
 	g_head = src;
 	return(1);
 }
+
 
 t_r *i_write(int i, int chk, int j, int stend)
 {
@@ -62,7 +63,7 @@ t_r *i_write(int i, int chk, int j, int stend)
 	return(temp);
 }
 
-int main()
+int main(void)
 {
 	t_info		*t;
 
@@ -73,7 +74,8 @@ int main()
 	DEF(&g_start, &g_end, &t->v, &g_e);
 	if ((g_err = get_next_line(g_fd, &g_s) ? ft_isaldigit(g_s) : 0))				//GNL
 		(t->ant = ft_atoi(g_s)) ? ft_strclr(g_s) : g_err--;
-	while (get_next_line(g_fd, &g_s) && g_err)										//GNL
+	while (get_next_line(g_fd, &g_s) && g_err)
+		if (IS_COM(g_s))//GNL
 		if (g_e == 2 && g_s[0] == '#' && g_s[1] == '#')
 			l_cmp(i_write(0, 1, 2, 0));
 		else if (g_e == 2 && g_s[0] != '#')
@@ -82,3 +84,56 @@ int main()
 			return (0);
 	g_err ? 0 :  write(2, "error\n", 6);
 }
+
+#include <stdlib.h>
+//int g_len;
+//int g_wlen;
+//
+//static int  len_str(char *s, int len, int worstr)
+//{
+//	printf("kek\n");
+//	while(*s == ' ' || *s == '\t' || *s == '\n' || *s == '\f' || *s == '\v')
+//		s++;
+//	if (worstr) {
+//		while (*s && *s != ' ' && *s != '\t' && *s != '\n' && *s != '\f' &&
+//			   *s != '\v')
+//			s++;
+//		return (*s ? len_str(s, ++len, 1) : len);
+//	}
+//	printf("kek\n");
+//	while (*s && *s != ' ' && *s != '\t' && *s != '\n' && *s != '\f' && *s != '\v')
+//		++len ?	s++ : 0;
+//	return(len);
+//}
+//
+//char        **ft_split(char *s)
+//{
+//	int     i;
+//	int     j;
+//	char    **buf;
+//
+//	i = -1;
+//	j = -1;
+//	g_wlen = 0;
+//	g_len = s ? len_str(s, 0, 1) : 0;
+//	buf = g_len ? (char **)malloc(sizeof(char *) * g_len) : NULL;
+//	while (++i < g_len && (g_wlen = len_str(s, 0, 0)))
+//	{
+//		if ((buf[i] = (char *)malloc(sizeof(char) * g_wlen + 1)))
+//			while(++j < g_wlen)
+//				buf[i][j] = *s++;
+//		printf("lol");
+//	}
+//	return(buf);
+//}
+//
+//#include <stdio.h>
+//
+//int main(int ac, char **av)
+//{
+//	char **f;
+//
+//	f = ft_split(av[1]);
+////	while(f)
+////		printf("%s", *f++);
+//}
