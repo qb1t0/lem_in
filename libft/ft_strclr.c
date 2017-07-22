@@ -12,10 +12,10 @@
 
 #include "libft.h"
 
-void		ft_strclr(char *s)
+int			ft_strclr(char *s)
 {
 	if (s != NULL)
 		while (*s)
 			*s++ = 0;
-	return ;
+	return (1);
 }

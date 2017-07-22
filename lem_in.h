@@ -7,14 +7,16 @@
 #include "libft/ft_printf/ft_printf.h"
 
 //room
-typedef struct		s_room
+typedef struct			s_room
 {
 	char				*name;
 	int 				stend;
+    int                 i;
+    int                 alg;
 	int 				x_cord;
 	int					y_cord;
-	struct s_room	*next;
-	struct s_room	*dali;
+	struct s_room		*next;
+	struct s_room		*dali;
 }						t_r;
 
 //head of room lists
@@ -33,4 +35,4 @@ typedef struct	s_info
 	t_l				*arr;
 }					t_info;
 
-# endif
+#endif

@@ -1,66 +1,119 @@
 #include <fcntl.h>
 #include "lem_in.h"
-#define DEF(x, y, z, q) *x = 0; *y = 0; *z = 0; *q = 2;
-#define IS_COM(a) (a[0] == '#' && a[1] != '#') ? 1 : 0;
+#define DEF(x, y, z, q) *x = 0; *y = 0; *z = 0; *q = 1;
+#define IS_COM(a) ((*a == '#') && *(a + 1) != '#' ? (1) : (0))
+
 int g_fd; //FILE DESCRIPTOR
 int g_j;
+int g_is;
 int g_end;
 int g_start;
-int g_lem; // № Ants
+int g_stop;
 int g_err; // error ? 1 : 0;
 int g_e; // 3 etaps of valid: 1 - N(ants); 2 - Vertexes; 3 - Edges
 t_r *g_head;
+//t_l *g_arr;
 char *g_s;
 
+int		ft_strfcmp(const char *s1, const char *s2, size_t n)
+{
+    if (n == 0)
+        return (0);
+    while ((*s1 && *s2) && (n > 1) && (*s1 == *s2))
+    {
+        s1++;
+        s2++;
+        n--;
+    }
+    return (*(unsigned char *)(s1) - *(unsigned char *)(s2));
+}
 
-int l_cmp(t_r *src)
+int    build(t_r *buf, int v, int time, int i, t_l *g_arr)
+{
+    static int src;
+    static int dst;
+    int is;
+    int kl;
+    int go;
+
+    while(g_s[i] && time && g_err && g_s[i] != '-')
+        i++;
+    i = time == 2 ? 0 : i + 1;
+    while(g_s && time && buf != NULL)
+        if (!(g_is = (ft_strfcmp(buf->name, g_s + i, (size_t)i + 1))))
+        {
+            time == 2 ? src = buf->i : 0;
+            time == 1 ? dst = buf->i : 0;
+            return(build(g_head, v, --time, 0, g_arr));
+        }
+        else
+            buf = buf->dali;
+    kl = src;
+    go = dst;
+    g_arr[dst].room->next = g_arr[src].room;
+    g_arr[src].room = g_arr[dst].room;
+    g_stop = (g_is || !g_s) ? 0 : 1;
+    return (1);
+//    while(g_arr[src].room && ft_printf("ROOM[%d] :%s\n"))
+//        ft_printf("");
+
+
+}
+int l_cmp(t_r *src, int v)
 {
 	t_r *temp;
+    t_l *g_arr;
 
-	temp = src;
-	if (temp->dali != NULL)
-	while (1)
-		if (!ft_strcmp(g_head->name, temp->name) || \
-         	   (g_head->x_cord == temp->x_cord && \
-          	      g_head->y_cord == temp->y_cord))
-			return ((g_err = 0));
-		else if (temp->dali == NULL)
-			break;
-		else
-			temp = temp->dali;
-	g_head = src;
-	return(1);
+	temp = g_head;
+    if (!src && (g_arr = (t_l *)malloc(sizeof(t_l) * v)))
+        while(temp)
+            (g_arr[temp->i].room = temp) ? temp = temp->dali : 0;
+    if (!src && !(g_start && g_end ? build(g_head, v, 2, 0, g_arr) : 0))
+        exit(1);
+    else if (!src)
+        return (0);
+    while (temp)
+        if (!ft_strcmp(src->name, temp->name) || \
+        (src->x_cord == temp->x_cord && src->y_cord == temp->y_cord))
+            return ((g_err = 0));
+        else if (temp->dali == NULL)
+            break;
+        else
+			    temp = temp->dali;
+    g_head = src;
+    g_head->i = v;
+    g_head->alg = -1;
+	return (v);
 }
 
 
-t_r *i_write(int i, int chk, int j, int stend)
+t_r *i_write(int i, int j, int stend)
 {
 	t_r *temp;
 
-	if (chk == 1 && !ft_strcmp("##start", g_s) && ++g_start)
-		return (i_write(0, ++chk, 2, 1));
-	else if (chk == 1 && !ft_strcmp("##end", g_s) && ++g_end)
-		return (i_write(0, ++chk, 2, 2));
-	else if (chk == 1 && get_next_line(g_fd, &g_s))                            //GNL
-		return (0);
-	stend ? get_next_line(g_fd, &g_s) : 0;
-	temp = (t_r *)malloc(sizeof(t_r));												//MALLOC
+	if (!g_start && !ft_strcmp("##start", g_s) && ++g_start)
+		return (i_write(0, 2, 1));
+	else if (!g_end && !ft_strcmp("##end", g_s) && ++g_end)
+		return (i_write(0, 2, 2));
+	stend && ft_strclr(g_s) ? get_next_line(g_fd, &g_s) : 0;
+	temp = (t_r *)malloc(sizeof(t_r));										    //MALLOC
 	while(ft_isdigit(g_s[i]) || ft_isalpha(g_s[i]))
-		g_err = (g_s[++i] == ' ') ? 1: 0;
-	temp->name = (char *)malloc(sizeof(char) * i + 1);                        //MALLOC
-	ft_strncpy(temp->name, g_s, (size_t)i);
-	while((g_j = 1) && j-- && g_err)
+		g_e = (g_s[++i] == ' ') ? 2 : 3;
+	temp->name = (char *)malloc(sizeof(char) * i + 1);
+    ft_strncpy(temp->name, g_s, (size_t)i);
+	while((g_j = 1) && j-- && g_e == 2)
 	{
 		while (ft_isdigit(g_s[++i]) && g_err)
 			g_j++;
 		if ((j && g_s[i] != ' ') || (!j && g_s[i] != '\0'))
-			g_err = 0;
+			g_e = 3;
 		j ? temp->x_cord = ft_atoi(g_s + i - 1) : 0;
 		!j ? temp->y_cord = ft_atoi(g_s + i - 1) : 0;
 	}
 	temp->dali = (temp->stend = stend) ? g_head : g_head;
 	temp->next = NULL;
-	return(temp);
+    g_e == 3 ? free(temp) : 0;
+	return(g_e == 2 ? temp : 0);
 }
 
 int main(void)
@@ -68,72 +121,17 @@ int main(void)
 	t_info		*t;
 
 	g_fd = open("../test", O_RDONLY);
-	t = (t_info *)malloc(sizeof(t_info));												//MALLOC
-	if (read(g_fd, g_s, 0) < 0)														//TEST reading
-		return ((int)write(2, "error\n", 6));
+	t = (t_info *)malloc(sizeof(t_info));											//MALLOC
+	g_err = (int)read(g_fd, g_s, 0) >= 0 ? 1 : 0;
 	DEF(&g_start, &g_end, &t->v, &g_e);
-	if ((g_err = get_next_line(g_fd, &g_s) ? ft_isaldigit(g_s) : 0))				//GNL
-		(t->ant = ft_atoi(g_s)) ? ft_strclr(g_s) : g_err--;
-	while (get_next_line(g_fd, &g_s) && g_err)
-		if (IS_COM(g_s))//GNL
-		if (g_e == 2 && g_s[0] == '#' && g_s[1] == '#')
-			l_cmp(i_write(0, 1, 2, 0));
-		else if (g_e == 2 && g_s[0] != '#')
-			l_cmp(i_write(0, 1, 2, 0));
-		else if ((*g_s != '#' || g_err) && write(2, "error\n", 6))
-			return (0);
-	g_err ? 0 :  write(2, "error\n", 6);
+	while (ft_strclr(g_s) && get_next_line(g_fd, &g_s) && g_err)
+		if (IS_COM(g_s))
+            ft_printf("%s\n",g_s);
+        else if (g_e == 1)
+            ft_isaldigit(g_s) && ++g_e ? t->ant = ft_atoi(g_s) : --g_err;
+		else if (g_e == 2)
+			l_cmp(i_write(0, 2, 0), t->v++) ? 0 : 1;
+        else if (g_e == 3)
+            ;
+	g_err ? 0 : write(2, "ERROR\n", 6);
 }
-
-#include <stdlib.h>
-//int g_len;
-//int g_wlen;
-//
-//static int  len_str(char *s, int len, int worstr)
-//{
-//	printf("kek\n");
-//	while(*s == ' ' || *s == '\t' || *s == '\n' || *s == '\f' || *s == '\v')
-//		s++;
-//	if (worstr) {
-//		while (*s && *s != ' ' && *s != '\t' && *s != '\n' && *s != '\f' &&
-//			   *s != '\v')
-//			s++;
-//		return (*s ? len_str(s, ++len, 1) : len);
-//	}
-//	printf("kek\n");
-//	while (*s && *s != ' ' && *s != '\t' && *s != '\n' && *s != '\f' && *s != '\v')
-//		++len ?	s++ : 0;
-//	return(len);
-//}
-//
-//char        **ft_split(char *s)
-//{
-//	int     i;
-//	int     j;
-//	char    **buf;
-//
-//	i = -1;
-//	j = -1;
-//	g_wlen = 0;
-//	g_len = s ? len_str(s, 0, 1) : 0;
-//	buf = g_len ? (char **)malloc(sizeof(char *) * g_len) : NULL;
-//	while (++i < g_len && (g_wlen = len_str(s, 0, 0)))
-//	{
-//		if ((buf[i] = (char *)malloc(sizeof(char) * g_wlen + 1)))
-//			while(++j < g_wlen)
-//				buf[i][j] = *s++;
-//		printf("lol");
-//	}
-//	return(buf);
-//}
-//
-//#include <stdio.h>
-//
-//int main(int ac, char **av)
-//{
-//	char **f;
-//
-//	f = ft_split(av[1]);
-////	while(f)
-////		printf("%s", *f++);
-//}
