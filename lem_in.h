@@ -13,6 +13,7 @@ typedef struct			s_room
 	int 				stend;
     int                 i;
     int                 alg;
+    int                 was;
 	int 				x_cord;
 	int					y_cord;
 	struct s_room		*next;
