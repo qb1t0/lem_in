@@ -61,16 +61,16 @@ int     algo(int k, int i, int v)
         }
     if (wid[k].room->i != g_iend)
         return (0);
-    while (k != 0 && (bro = wid[k].room))
-        while (bro)
-//            if ((g_ways[0] = (t_l *)malloc(sizeof(t_l) * k)))
-//                ;
-            if (bro->i == k - 1) {
-                g_back = (t_r *)malloc(sizeof(t_r)); //key list
-                g_back =
-            }
-            else
-                bro = bro->next;
+//    while (k != 0 && (bro = wid[k].room))
+//        while (bro)
+////            if ((g_ways[0] = (t_l *)malloc(sizeof(t_l) * k)))
+////                ;
+//            if (bro->i == k - 1) {
+//                g_back = (t_r *)malloc(sizeof(t_r)); //key list
+//                g_back =
+//            }
+//            else
+//                bro = bro->next;
 }
 
 int    build(t_r *buf, int v, int time, int i)

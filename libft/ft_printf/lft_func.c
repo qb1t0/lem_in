@@ -17,11 +17,6 @@
 **	ft_tolower | ft_strlen | ft_isdigit | ft_strchr
 */
 
-int			ft_tolower(int c)
-{
-	return (((c > 64) && (c < 91)) ? (c + 32) : c);
-}
-
 /*
 ** V for vendetta, K for kostul'
 */
