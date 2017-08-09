@@ -40,35 +40,58 @@ int		ft_strfcmp(const char *s1, const char *s2, size_t n)
     return (*(unsigned char *)(s1) - *(unsigned char *)(s2));
 }
 
-void    l_out(int i, int j, int ant)
+/*
+ * o == 0 ? crawing keylist
+ * o == 1 ? printing
+ */
+
+int     l_crawandprint(int ant, t_r *buf)
+{
+    if (!buf->ant)
+        while (buf->i != g_iend)
+            buf = buf->dali;
+    while (buf->prev)
+    {
+        buf->ant = buf->prev->ant;
+        buf = buf->prev;
+    }
+    buf->ant = ant;
+
+    while (buf)
+    {
+        buf->ant ? ft_printf("L%d-%s ", buf->ant, buf->name) : 0;
+        buf = buf->dali;
+    }
+    return (1);
+}
+void    l_out(int i, int j, int ant, int v)
 {
     t_r *buf;
 
     while (g_ways[0].len == 1 && ++i < ant)
         printf("L%d-%s ", i + 1, g_arr[g_iend].room->name);
-    i != -1 ? exit((int)write(1, "\n", 1)) : 0;
-    while (++i < ant)
-    {
-        //g_ways[i]
-    }
-    while (i < g_f)
-    {
-        buf = g_ways[i].room;
-        while(buf)
-        {
-
-            buf = buf->dali;
+    i != -1 ? exit((int)write(1, "\n", 1)) : i++;
+    while (i < ant && (j = -1)) {
+        while (++j < g_h && (buf = g_ways[j].room)) {
+            if (g_ways[j].len - g_ways[0].len + 1 <= ant)
+                l_crawandprint(++i, buf) ? g_ways[j].is = 1 : 0;
+            else if (g_ways[j].is)
+                l_crawandprint(0, buf);
         }
-        i++;
+        ft_printf("\n");
     }
-    return ;
 }
 
 int  l_cleanway(int i, int v, t_r *buf)
 {
+    t_sr *lol;
+
+
     while (++i < v - 1)
-        if (i != g_isrt && g_arr[i].room->was != -1)
+        if (i != g_isrt && g_arr[i].room->was != -1) {
             g_arr[i].room->was = 0;
+            g_arr[i].room->alg->wave = -1;
+        }
     while (buf)
     {
         if (buf->i != g_iend)
@@ -77,44 +100,69 @@ int  l_cleanway(int i, int v, t_r *buf)
     }
 }
 
-int  l_wayback(int v, int k, t_l *arr)
+int  l_wayback(int v, int k, t_l *arr, t_sr *q)
 {
     int i;
     t_r *buf;
 
-    //buf = (t_r *)malloc(sizeof(t_r) * k);
     g_ways[g_f - 1].len = k;
     while((buf = (t_r *)malloc(sizeof(t_r))) && k > 0)
     {
-        i = 0;
-        while(i < v && arr[i].room->was != k)
-            i++;
+        while(q->wave != k)
+            q = q->next;
+        i = q->i;
+        q = arr[q->i].room->alg;
         if (i != g_isrt && i != g_iend)
             g_arr[i].room->was = i;
-        //buf = (t_r *)malloc(sizeof(t_r));
         buf->i = arr[i].room->i;
-        //buf->name = arr[i].room->name;
+        buf->name = arr[i].room->name;
         buf->ant = 0;
+        g_ways[g_f - 1].room ? g_ways[g_f - 1].room->prev = buf : 0;
         buf->dali = g_ways[g_f - 1].room;
         g_ways[g_f - 1].room = buf;
         k--;
     }
+    g_ways[g_f - 1].room->prev = NULL;
     buf = g_ways[g_f - 1].room;
+    g_ways[g_f - 1].is = 0;
     l_cleanway(-1, v, buf);
     return(1);
 }
 
-int     create_link(int dst, int src, int time)
+
+/*
+** Error parsing func
+** variable place:
+** 0 ? ant error
+** 1 ? start/end error
+** 2 ? room name/coordinates error
+*/
+
+int     errorlink(int place, int dst, int src, int time)
 {
     t_sr *buf;
 
+    if (place)
+    {
+        if (place == -1)
+            exit(ft_printf("%s", g_errors[0]));
+        else if (place == 1 && !g_s)
+            exit(ft_printf("%s", g_errors[6]));
+        else if (place == 1 && (g_start > 1 || g_end > 1))
+            exit(ft_printf("%s", g_errors[4]));
+        else if (place == 1 && (g_start < 1 || g_end < 1))
+            exit(ft_printf("%s", g_errors[3]));
+        else if (place == 2)
+            exit(ft_printf("%s", g_errors[2]));
+        return(0);
+    }
     buf = (t_sr *)malloc(sizeof(t_sr));
     buf->i = src;
     buf->wave = -1;
     buf->next = g_arr[dst].room->alg;
     g_arr[dst].room->alg = buf;
     if (time--)
-        return(create_link(src, dst, time));
+        return(errorlink(0, src, dst, time));
     ft_printf(COL_CYAN"%s\n"COL_EOC, g_s);
     return (0);
 }
@@ -128,20 +176,23 @@ int      l_algo(int k, int i, int v)
 {
     t_sr *buf;
     t_l  *arr;
+    t_sr *back;
 
     arr = g_arr;
     g_al = (int *)malloc(sizeof(int) * v); //int mass for stack
     buf = g_arr[g_isrt].room->alg;
-    while (++k < v && (buf = (k ? arr[g_al[k - 1]].room->alg : arr[g_isrt].room->alg)))
+    while (++k < v - 1 && (buf = (k ? arr[g_al[k - 1]].room->alg : arr[g_isrt].room->alg)))
     {//loop for vertices marking
         while(buf) {
-            if (g_arr[buf->i].room->was != -1 && \
-                !arr[buf->i].room->was && buf->wave == -1) //mark here
+            if (g_arr[buf->i].room->was != -1 && buf->wave == -1) //mark here
                 g_al[k + i++] = buf->i;
             if (arr[buf->i].room->was != -1)
+            {
                 arr[buf->i].room->was = k + 1;
-            if (buf->i == g_iend) //stop if end
-                return (l_wayback(v, ++k, arr));
+                buf->wave = k + 1;
+            }
+            if (buf->i == g_iend && (back = buf)) //stop if end
+                return ((g_ways[g_f - 1].room = NULL) ? 0 : l_wayback(v, g_arr[buf->i].room->was, arr, back));
             buf = buf->next;
         }
         i ? i-- : 0;
@@ -166,7 +217,8 @@ int    l_link(t_r *buf, int v, int time, int i)
     //g_f = !g_f ? 0 : g_f + 1;
     while(g_s[i] && g_err && g_s[i] != '-')
         i++;
-    i == 0 || !g_s ? exit(ft_printf("%s\n", g_errors[6])) : 0;
+    if (i == 0 || !g_s)
+        return(ft_printf("%s\n", g_errors[6]) ? g_err = 0 : 0);
     i = time == 2 ? 0 : i + 1;
     while(g_s && time && buf != NULL)
         if (!(g_is = (ft_strfcmp(buf->name, g_s + i, (size_t)i + 1))))
@@ -181,9 +233,9 @@ int    l_link(t_r *buf, int v, int time, int i)
         return (g_err = 0);
 
     if (dst != src)
-        create_link(dst, src, 1);
-    dst == g_isrt ? g_start++ : 0;
-    dst == g_iend ? g_end++ : 0;
+        errorlink(0, dst, src, 1);
+    src == g_isrt || dst == g_isrt ? g_start++ : 0;
+    src == g_iend || dst == g_iend ? g_end++ : 0;
     return (1);
 }
 
@@ -226,28 +278,6 @@ int l_compare(t_r *src, int v)
 }
 
 /*
-** Error parsing func
-** variable place:
-** 0 ? ant error
-** 1 ? start/end error
-** 2 ? room name/coordinates error
-*/
-
-int    l_error(int place)
-{
-    if (place == 0)
-        exit(ft_printf("%s", g_errors[0]));
-    else if (place == 1 && !g_s)
-        exit(ft_printf("%s", g_errors[6]));
-    else if (place == 1 && (g_start > 1 || g_end > 1))
-        exit(ft_printf("%s", g_errors[4]));
-    else if (place == 1 && (g_start < 1 || g_end < 1))
-        exit(ft_printf("%s", g_errors[3]));
-    else if (place == 2)
-        exit(ft_printf("%s", g_errors[2]));
-}
-
-/*
 ** Room info read && validate function
 */
 
@@ -266,14 +296,14 @@ t_r *l_room(int i, int j, int stend)
     while(ft_isdigit(g_s[i]) || ft_isalpha(g_s[i]))
         i++;
     if ((g_e = (g_s[i] == ' ' && *g_s != 'L') ? 2 : 3) == 3)
-        return(l_error(1) ? 0 : 0);
+        return(errorlink(1,0,0,0) ? NULL : NULL);
     temp = (t_r *)malloc(sizeof(t_r));
     temp->name = ft_strsub(g_s, 0, (size_t)i);
 	while(g_e == 2 && (g_j = 1) && j--)
 	{
 		while (ft_isdigit(g_s[++i]) && g_err)
 			g_j++;
-		(j && g_s[i] != ' ') || (!j && g_s[i] != '\0') ? l_error(2) : 0;
+		(j && g_s[i] != ' ') || (!j && g_s[i] != '\0') ? errorlink(2,0,0,0) : 0;
 		j ? temp->x_cord = ft_atoi(g_s + i - 1) : 0;
 		!j ? temp->y_cord = ft_atoi(g_s + i - 1) : 0;
 	}
@@ -293,15 +323,16 @@ int main(void)
 		if (IS_COM(g_s) && ft_strcmp(E, g_s) && ft_strcmp(S, g_s))
             ft_printf(COL_GRAY"%s\n"COL_EOC,g_s);
         else if (g_e == 1 && ++g_e)
-            ft_isaldigit(g_s) && (t->ant = ft_atoi(g_s)) ? A(g_s) : l_error(0);
+            ft_isaldigit(g_s) && (t->ant = ft_atoi(g_s)) ? \
+                A(g_s) : errorlink(-1,0,0,0);
 		else if (g_e == 2)
 			l_compare(l_room(0, 2, 0), t->v++);
         else if (g_e == 3)
             l_link(g_head, t->v, 2, 0);
-    g_h = (g_start < g_end) ? g_start : g_end; //g_h - how much ways
+    g_h = (g_start < g_end) ? g_start - 1 : g_end - 1; //g_h - how much ways
     if ((g_ways = (t_l *)malloc(sizeof(t_l) * g_h)) && (g_f = 1)) //array for ways
         while (g_f - 1 < g_h && l_algo(-1, 0, t->v))
             g_f++;
-    g_f > 0 ? l_out(-1, -1, t->ant) : exit(ft_printf("%s", g_errors[5]));
+    g_f > 0 ? l_out(-1, -1, t->ant, t->v - 1) : exit(ft_printf("%s", g_errors[5]));
     return (1);
 }

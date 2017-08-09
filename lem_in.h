@@ -70,6 +70,7 @@ typedef struct			s_room
 	int					y_cord;
     t_sr                *alg;
 	struct s_room		*dali;
+    struct s_room		*prev;
 
 }						t_r;
 
@@ -77,6 +78,7 @@ typedef struct 		    s_listarr
 {
     t_r					*room;
     int                 len;
+    int                 is;
 }						t_l;
 
 
