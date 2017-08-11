@@ -84,14 +84,20 @@ void    l_out(int i, int j, int ant, int v)
 
 int  l_cleanway(int i, int v, t_r *buf)
 {
-    t_sr *lol;
+    t_r *lol;
 
-
+    if (i == 0)
+    {
+        while (g_arr[i].room->was != v)
+            i++;
+        lol = g_arr[i].room;
+        while(lol->i )
+            ;
+    }
     while (++i < v - 1)
-        if (i != g_isrt && g_arr[i].room->was != -1) {
+        if (i != g_isrt && g_arr[i].room->was != -1)
             g_arr[i].room->was = 0;
-            g_arr[i].room->alg->wave = -1;
-        }
+//            g_arr[i].room->alg->wave = -1;
     while (buf)
     {
         if (buf->i != g_iend)
@@ -100,7 +106,7 @@ int  l_cleanway(int i, int v, t_r *buf)
     }
 }
 
-int  l_wayback(int v, int k, t_l *arr, t_sr *q)
+int  l_wayback(int v, int k, t_l *arr)
 {
     int i;
     t_r *buf;
@@ -108,10 +114,8 @@ int  l_wayback(int v, int k, t_l *arr, t_sr *q)
     g_ways[g_f - 1].len = k;
     while((buf = (t_r *)malloc(sizeof(t_r))) && k > 0)
     {
-        while(q->wave != k)
-            q = q->next;
-        i = q->i;
-        q = arr[q->i].room->alg;
+        l_cleanway(0, k, buf);
+        //q = arr[q->i].room->alg;
         if (i != g_isrt && i != g_iend)
             g_arr[i].room->was = i;
         buf->i = arr[i].room->i;
@@ -176,7 +180,6 @@ int      l_algo(int k, int i, int v)
 {
     t_sr *buf;
     t_l  *arr;
-    t_sr *back;
 
     arr = g_arr;
     g_al = (int *)malloc(sizeof(int) * v); //int mass for stack
@@ -191,8 +194,8 @@ int      l_algo(int k, int i, int v)
                 arr[buf->i].room->was = k + 1;
                 buf->wave = k + 1;
             }
-            if (buf->i == g_iend && (back = buf)) //stop if end
-                return ((g_ways[g_f - 1].room = NULL) ? 0 : l_wayback(v, g_arr[buf->i].room->was, arr, back));
+            if (buf->i == g_iend) //stop if end
+                return ((g_ways[g_f - 1].room = NULL) ? 0 : l_wayback(v, g_arr[buf->i].room->was, arr));
             buf = buf->next;
         }
         i ? i-- : 0;
