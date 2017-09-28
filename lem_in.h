@@ -1,10 +1,22 @@
 # ifndef LEM_IN_H
 #define LEM_IN_H
 
-#include <stdio.h>
+#include <fcntl.h>
 #include <unistd.h>
 #include "libft/libft.h"
 #include "libft/ft_printf/ft_printf.h"
+
+#define DEF(x, y, z, q) *x = 0; *y = 0; *z = 0; *q = 1;
+#define IS_COM(a) ((*a == '#')  ? (1) : (0))
+#define START(i) (ft_printf("[ start(%d,%d) ]", X(i), Y(i)))
+#define END(i) (ft_printf("->[ end(%d,%d) ]\n", X(i), Y(i)))
+#define ROOM(s, i) (ft_printf("->[ %s(%d,%d) ]", s, X(i), Y(i)))
+#define X(i) (g_arr[i].room->x_cord)
+#define Y(i) (g_arr[i].room->y_cord)
+#define A(s) (ft_printf(COL_GREEN"%s\n"COL_EOC, s))
+#define E "##end"
+#define S "##start"
+#define B "bonus activated, put number of ways\n"COL_EOC
 
 /*
 ** An error char *array[]
@@ -24,17 +36,6 @@ static char             *g_errors[] = {
 		COL_RED"ERROR (8): Same room name or coordinates "
                 "are already exist"COL_EOC
 };
-
-/*
-** ENUM for bool constants
-** f - false; t - true
-*/
-
-typedef enum            e_bool
-{
-    f,
-    t
-}                       t_bool;
 
 /*
 ** Adjacency list array(g_arr)
@@ -81,27 +82,44 @@ typedef struct 		    s_listarr
     int                 is;
 }						t_l;
 
-
-//** List for founded way
-//*/
-//typedef struct 		    s_way
-//{
-//    char                *name;
-//    int
-//}						t_way;
-
-/*
-** ant             - № of ants
-** v               - № of vertices
- */
-
 typedef struct	        s_info
 {
-	int				    start;
-	int				    end;
 	int				    ant;
 	int 			    v;
-	t_l				    *arr;
 }					    t_info;
+
+int g_j;
+int g_b;
+int g_f;
+int g_e; // 3 etaps of valid: 1 - N(ants); 2 - Vertexes; 3 - Edges
+int g_h;
+int g_fd;
+int g_is;
+int *g_al; //uses a queue (First In First Out)
+char *g_s;
+int g_err; // error ? 1 : 0;
+int g_bon;
+int g_end;
+int g_isrt;
+int g_iend;
+size_t g_o;
+t_sr *g_sr;
+t_l *g_arr;
+t_r *g_temp;
+t_r *g_head;
+t_l *g_ways;
+int g_start;
+
+
+int     				errorlink(int place, int dst, int src, int time);
+int    					l_link(t_r *buf, int v, int time, int i);
+int 					l_compare(t_r *src, int v);
+t_r						*l_room(int i, int j, int stend);
+int      				l_algo(int k, int i, int v);
+int  					l_wayback(int v, int k, t_l *arr);
+int  					l_cleanway(int k, int i, int v, t_r *buf);
+void    				l_out(int i, int j, int ant);
+int     				l_crawandprint(int ant, int j, int k, t_r *buf);
+
 
 #endif

@@ -79,6 +79,6 @@ set(SOURCE_FILES
         libft/get_next_line.c
         libft/libft.h
         lem_in.h
-        main.c)
+        start.c bonus.c end.c)
 
 add_executable(lem_in ${SOURCE_FILES})
