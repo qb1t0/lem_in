@@ -1,4 +1,4 @@
-20
+200
 ##start
 start 0 1
 ##end
@@ -6,9 +6,9 @@ end 100 100
 0 94 66
 start-0
 0-end
-ERROR
 bonus activated, put number of ways
-[ start(0,1) ]->[ 0(94,66) ]->[ end(100,100) ]
+BONUS WAYS:
+[ start(0,0) ]->[ 0(94,1) ]->[ end(100,2) ]
 
 L1-0
 L1-end L2-0

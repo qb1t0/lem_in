@@ -143,6 +143,7 @@ t_r *l_room(int i, int j, int stend)
     return(g_temp);
 }
 
+/*
 int main(void)
 {
 	t_info		*t;
@@ -171,4 +172,4 @@ int main(void)
             g_f++;
     g_f > 1 ? l_out(-1, -1, t->ant) : exit(ft_printf("%s", g_errors[5]));
     return(1);
-}
+}*/
