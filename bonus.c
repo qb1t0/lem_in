@@ -36,9 +36,10 @@ int lb_drawpic(int fd, int type)
 int lb_xsort(int y, t_r *buf, int key, int xmax)
 {
     int i;
+    int max;
 
     i = 0;
-    g_mass[y] = NULL;
+    max = xmax;
     while(i < key && (buf = g_sort))
     {
         while(buf)
@@ -55,6 +56,7 @@ int lb_xsort(int y, t_r *buf, int key, int xmax)
             buf = buf->dali;
         }
         i++;
+        xmax = max;
     }
     g_mass[y] = g_sort;
 }
@@ -89,9 +91,21 @@ int createyway(int y, int key)
     return (key ? 0 : 1);
 }
 
+int lb_markant(t_r *buf, int x, int ant)
+{
+    t_r *craw;
+
+    craw = buf;
+    while(craw->x_cord != buf->x_cord)
+            craw = craw->dali;
+    craw->ant = ant;
+    return(1);
+}
+
 int lb_outread(int ant, int i, int j, int len)
 {
-    char *s;
+    t_r *buf;
+    char *name;
 
     while(g_s[i] != 'L')
         i++;
@@ -101,28 +115,74 @@ int lb_outread(int ant, int i, int j, int len)
     j = ++i;
     while(ft_isdigit(g_s[i]) || ft_isalpha(g_s[i]))
         i++;
-    s = ft_strsub(g_s, (unsigned int)j, (size_t) (i - j));
+    name = ft_strsub(g_s, (unsigned int)j, (size_t) (i - j));
     //Todo: While g_w found this name && add ant to the g_mass[y] this list
-    //buf = g_w
-    //while buf
-    //if (!strcmp) ? buf = g_w[buf->y]
-    //while(buf)
-    //if (!strcmp) ? buf->ant = ant;
-
+    buf = g_w;
+    while (buf)
+    {
+        if (!ft_strcmp(buf->name, name))
+        {
+            lb_markant(g_mass[buf->y_cord], buf->x_cord, ant);
+            break;
+        }
+        buf = buf->dali;
+    }
     return (i < len ? lb_outread(0, j, 0, len) : 1);
 }
 
-int map_init(int x, int y, int i,char *s)
+int lb_sort(int i, t_r *buf)
 {
-    g_mass[0] = NULL;
+    t_r *craw;
+
+    craw = buf;
+    while (craw)
+    {
+        if (craw->i == i)
+        {
+            if (!ft_strcmp(craw->name, "start"))
+                ft_printf(COL_LGREEN"[s]"COL_EOC);
+            else if(!ft_strcmp(craw->name, "end"))
+                ft_printf(COL_LGREEN"[e]"COL_EOC);
+            else
+                ft_printf("[%*.d]", g_ant ,craw->ant);
+            return (1);
+        }
+       craw = craw->dali;
+    }
+    return (0);
+}
+
+int lb_drawall(int i, int j, int ant)
+{
+    t_r *buf;
+
+    while(i <= g_ymax)
+    {
+        buf = g_mass[i];
+        if (buf != NULL)
+        {
+            while (lb_sort(j, buf))
+                j++;
+        }
+        j = 0;
+        ft_printf("\n");
+        i++;
+    }
+}
+
+int map_init(int x, int y, int i, char *s)
+{
     while (y <= g_ymax)
     {
+        g_mass[y] = NULL;
         createyway(y, 0);
         y++;
     }
-    while(get_next_line(g_file, &g_s)) {
+    while(get_next_line(g_file, &g_s))
+    {
         lb_outread(0, 0, 0, (int) ft_strlen(g_s));
-        //ToDO: draw this step here
+        lb_drawall(0, 0, 0); //ToDO: draw this step here
+        ft_printf("________________________\n\n");
     }
 }
 
@@ -143,7 +203,7 @@ int lb_write(int way, unsigned int i, size_t j)                      //i == 2, c
         j = (size_t)++i;
         while(ft_isdigit(g_s[i]) || g_s[i] == '-')
             i++;
-        e->x_cord = ft_atoi(g_s + j) * g_ant + 2;
+        e->x_cord = ft_atoi(g_s + j) * (g_ant + 3);
         j = (size_t)++i;
         while(ft_isdigit(g_s[i]) || g_s[i] == '-')
             i++;
@@ -153,9 +213,7 @@ int lb_write(int way, unsigned int i, size_t j)                      //i == 2, c
         g_w = e;
         i += 7;
         j = i;
-        //free(e);
     }
-
     return (1);
 }
 
@@ -183,9 +241,8 @@ int main(void)
         else
             ft_strclr(g_s);
     found ? exit(lb_drawpic(fd, 0)) : ft_strclr(g_s);             //no-bonus print
-    ft_printf("\e[5mYOUR WAYS : \n") ;
+    ft_printf("\e[5mYOUR WAYS : \n");
     while (lb_write(g_is, 2, 2))
         ++g_is;
     map_init(0, 0, 0, g_s);
-    //while (get_next_line(g_file, &g_s))
 }

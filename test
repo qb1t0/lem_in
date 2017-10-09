@@ -6,9 +6,8 @@ end 100 100
 0 94 66
 start-0
 0-end
-bonus activated, put number of ways
-BONUS WAYS:
-[ start(0,0) ]->[ 0(94,1) ]->[ end(100,2) ]
+
+[ start(0,1) ]->[ 0(4,0) ]->[ end(10,0) ]
 
 L1-0
 L1-end L2-0
